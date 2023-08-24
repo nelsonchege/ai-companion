@@ -1,5 +1,7 @@
 "use client";
 
+import { Icons } from "@/components/Icons";
+import { Button } from "@/components/ui/button";
 import { signIn } from "next-auth/react";
 import { ChangeEvent, useState } from "react";
 
@@ -75,10 +77,23 @@ export const RegisterForm = () => {
           type="submit"
           style={{ backgroundColor: `${loading ? "#ccc" : "#3446eb"}` }}
           className="w-full text-center py-3 rounded bg-green text-white hover:bg-green-dark focus:outline-none my-1"
-          disabled={loading}
-        >
+          disabled={loading}>
           {loading ? "loading..." : "Sign Up"}
         </button>
+        <div className="flex">
+          <span className="w-full text-center">or</span>
+        </div>
+        <Button
+          size={"sm"}
+          className="w-full mb-3"
+          onClick={() => signIn("google")}>
+          <Icons.google className="h-4 w-4 mr-2" />
+          Google
+        </Button>
+        <Button size={"sm"} className="w-full" onClick={() => signIn("github")}>
+          <Icons.github className="h-4 w-4 mr-2 " />
+          Github
+        </Button>
       </div>
     </form>
   );
