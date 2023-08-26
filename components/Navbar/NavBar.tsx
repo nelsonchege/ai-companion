@@ -4,7 +4,8 @@ import { cn } from "@/lib/utils";
 import { Menu } from "lucide-react";
 import { Poppins } from "next/font/google";
 import Link from "next/link";
-import UserMenu from "./Navbar/UserMenu";
+import UserMenu from "./UserMenu";
+import MobileSidebar from "./MobileSidebar";
 
 type Props = {};
 
@@ -15,9 +16,9 @@ const font = Poppins({
 
 const NavBar = (props: Props) => {
   return (
-    <div className="fixed w-full z-50 flex justify-between items-center py-2 px-4 border-b border-primary/10 bg-secondary">
+    <div className="fixed w-full h-16 z-50 flex justify-between items-center py-2 px-4 border-b border-primary/10 bg-secondary">
       <div className="flex items-center">
-        <Menu className="block md:hidden" />
+        <MobileSidebar />
         <Link href={"/"}>
           <h1
             className={cn(
