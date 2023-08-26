@@ -2,16 +2,29 @@
 
 import { Icons } from "@/components/Icons";
 import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 import { signIn } from "next-auth/react";
-import { ChangeEvent, useState } from "react";
+import { useRouter } from "next/navigation";
+import { ChangeEvent, useCallback, useState } from "react";
+import { toast } from "react-hot-toast";
+import { FiGithub } from "react-icons/fi";
 
 export const RegisterForm = () => {
   const [loading, setLoading] = useState(false);
+  const [githubloading, setGithubLoading] = useState<Boolean>(false);
+  const [googleloading, setGoogleLoading] = useState<Boolean>(false);
+  const [error, setError] = useState("");
   const [formValues, setFormValues] = useState({
     username: "",
     password: "",
   });
-  const [error, setError] = useState("");
+
+  const router = useRouter();
+
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = event.target;
+    setFormValues({ ...formValues, [name]: value });
+  };
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,26 +47,46 @@ export const RegisterForm = () => {
       }
 
       signIn(undefined, { callbackUrl: "/" });
+      toast.success("Registered Successfull");
     } catch (error: any) {
       setLoading(false);
       setError(error);
     }
   };
 
-  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = event.target;
-    setFormValues({ ...formValues, [name]: value });
-  };
+  const loginWithGoogle = useCallback(async () => {
+    setGoogleLoading(true);
 
-  const input_style =
-    "form-control block w-full px-4 py-5 text-sm font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none";
+    try {
+      await signIn("google");
+    } catch (error) {
+    } finally {
+      setGoogleLoading(false);
+      router.push("/");
+      toast.success("Registered Successfull");
+    }
+  }, []);
+
+  const loginWithGithub = useCallback(async () => {
+    setGithubLoading(true);
+
+    try {
+      await signIn("github");
+    } catch (error) {
+    } finally {
+      setGithubLoading(false);
+      router.push("/");
+      toast.success("Registered Successfull");
+    }
+  }, []);
 
   return (
-    <form onSubmit={onSubmit}>
-      {error && (
-        <p className="text-center bg-red-300 py-4 mb-6 rounded">{error}</p>
-      )}
-      <div className="bg-white px-6 py-8 rounded shadow-md text-black w-full">
+    <div className="bg-white px-6 py-8 rounded shadow-md text-black w-full">
+      <form onSubmit={onSubmit}>
+        {error && (
+          <p className="text-center bg-red-300 py-4 mb-6 rounded">{error}</p>
+        )}
+
         <h1 className="mb-8 text-3xl text-center">Sign up</h1>
         <input
           required
@@ -77,24 +110,40 @@ export const RegisterForm = () => {
           type="submit"
           style={{ backgroundColor: `${loading ? "#ccc" : "#3446eb"}` }}
           className="w-full text-center py-3 rounded bg-green text-white hover:bg-green-dark focus:outline-none my-1"
-          disabled={loading}>
+          disabled={loading}
+        >
           {loading ? "loading..." : "Sign Up"}
         </button>
         <div className="flex">
           <span className="w-full text-center">or</span>
         </div>
-        <Button
-          size={"sm"}
-          className="w-full mb-3"
-          onClick={() => signIn("google")}>
+      </form>
+      <Button
+        size={"sm"}
+        className="w-full mb-3"
+        isLoading={googleloading}
+        onClick={loginWithGoogle}
+      >
+        {googleloading ? (
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        ) : (
           <Icons.google className="h-4 w-4 mr-2" />
-          Google
-        </Button>
-        <Button size={"sm"} className="w-full" onClick={() => signIn("github")}>
-          <Icons.github className="h-4 w-4 mr-2 " />
-          Github
-        </Button>
-      </div>
-    </form>
+        )}
+        Google
+      </Button>
+      <Button
+        size={"sm"}
+        className="w-full"
+        onClick={loginWithGithub}
+        isLoading={googleloading}
+      >
+        {githubloading ? (
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        ) : (
+          <FiGithub style={{ color: "white" }} className="h-4 w-4 mr-2" />
+        )}
+        Github
+      </Button>
+    </div>
   );
 };

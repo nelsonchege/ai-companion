@@ -50,7 +50,7 @@ export const authOptions: NextAuthOptions = {
   ],
 
   pages: {
-    signIn: "/",
+    signIn: "/login",
   },
   debug: process.env.NODE_ENV === "development",
   session: {
