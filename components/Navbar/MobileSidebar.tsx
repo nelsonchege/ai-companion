@@ -1,14 +1,7 @@
 import { Menu } from "lucide-react";
 import React from "react";
 
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import SideBar from "../SideBar/SideBar";
 
 type Props = {};
