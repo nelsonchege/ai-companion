@@ -10,7 +10,7 @@ const Rootlayout = ({ children }: RootlayoutProps) => {
   return (
     <div className="h-full">
       <NavBar />
-      <div className="hidden md:flex mt-10 w-20 flex-col fixed inset-y-6">
+      <div className="hidden h-full md:flex mt-10 w-20 flex-col fixed inset-y-6">
         <SideBar />
       </div>
       <main className="md:pl-20 pt-16 h-full">{children}</main>
