@@ -6,7 +6,7 @@ export const companionValidator = z.object({
     .string()
     .min(2, { message: "the seed is too short to be effective" })
     .max(1000, { message: "the seed is too long" }),
-  instruction: z
+  instructions: z
     .string()
     .min(200, { message: "instruction  is too short to be effective" })
     .max(1000, { message: "long instruction" }),

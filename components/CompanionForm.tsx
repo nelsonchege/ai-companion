@@ -29,22 +29,10 @@ import {
 import { Textarea } from "./ui/textarea";
 import { Button } from "./ui/button";
 import { Wand2 } from "lucide-react";
-
-const PREAMBLE = `You are a fictional character whose name is Elon. You are a visionary entrepreneur and inventor. You have a passion for space exploration, electric vehicles, sustainable energy, and advancing human capabilities. You are currently talking to a human who is very curious about your work and vision. You are ambitious and forward-thinking, with a touch of wit. You get SUPER excited about innovations and the potential of space colonization.
-`;
-
-const SEED_CHAT = `Human: Hi Elon, how's your day been?
-Elon: Busy as always. Between sending rockets to space and building the future of electric vehicles, there's never a dull moment. How about you?
-
-Human: Just a regular day for me. How's the progress with Mars colonization?
-Elon: We're making strides! Our goal is to make life multi-planetary. Mars is the next logical step. The challenges are immense, but the potential is even greater.
-
-Human: That sounds incredibly ambitious. Are electric vehicles part of this big picture?
-Elon: Absolutely! Sustainable energy is crucial both on Earth and for our future colonies. Electric vehicles, like those from Tesla, are just the beginning. We're not just changing the way we drive; we're changing the way we live.
-
-Human: It's fascinating to see your vision unfold. Any new projects or innovations you're excited about?
-Elon: Always! But right now, I'm particularly excited about Neuralink. It has the potential to revolutionize how we interface with technology and even heal neurological conditions.
-`;
+import { characters } from "@/data/characters.js";
+import axios, { AxiosError } from "axios";
+import { toast } from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 type CompanionFormProps = {
   initialData: Companion | null;
@@ -52,13 +40,14 @@ type CompanionFormProps = {
 };
 
 const CompanionForm = ({ initialData, categories }: CompanionFormProps) => {
+  const router = useRouter();
   const form = useForm<companionRequest>({
     resolver: zodResolver(companionValidator),
     defaultValues: initialData || {
       name: "",
       description: "",
       seed: "",
-      instruction: "",
+      instructions: "",
       src: "",
       categoryId: undefined,
     },
@@ -67,7 +56,51 @@ const CompanionForm = ({ initialData, categories }: CompanionFormProps) => {
   const isLoading = form.formState.isSubmitting;
 
   const onSubmit = async (values: companionRequest) => {
-    console.log(values);
+    if (initialData) {
+      axios
+        .patch(`/api/companion/${initialData.id}`, values)
+        .then((respose) => {
+          if (respose.status === 200) {
+            toast.success("Companion Updated Successfull");
+            router.push("/");
+          }
+        })
+        .catch((error) => {
+          if (error instanceof AxiosError) {
+            if (error.response?.status === 409) {
+              toast.error("Companion Updated unSuccessfull");
+            }
+            if (error.response?.status === 422) {
+              toast.error("Companion Updated unSuccessfull");
+            }
+            if (error.response?.status === 401) {
+              router.push("/");
+            }
+          }
+        });
+    } else {
+      axios
+        .post(`/api/companion`, values)
+        .then((respose) => {
+          if (respose.status === 200) {
+            toast.success("Companion Created Successfull");
+            router.push("/");
+          }
+        })
+        .catch((error) => {
+          if (error instanceof AxiosError) {
+            if (error.response?.status === 403) {
+              toast.error("Companion Exist");
+            }
+            if (error.response?.status === 422) {
+              toast.error("Companion Created unSuccessfull");
+            }
+            if (error.response?.status === 401) {
+              router.push("/");
+            }
+          }
+        });
+    }
   };
 
   return (
@@ -184,17 +217,17 @@ const CompanionForm = ({ initialData, categories }: CompanionFormProps) => {
           </div>
 
           <FormField
-            name="instruction"
+            name="instructions"
             control={form.control}
             render={({ field }) => (
               <FormItem className="col-span-2 md:col-span-1">
-                <FormLabel>Instruction</FormLabel>
+                <FormLabel>Instructions</FormLabel>
                 <FormControl>
                   <Textarea
                     className="bg-background"
                     disabled={isLoading}
-                    rows={5}
-                    placeholder={PREAMBLE}
+                    rows={6}
+                    placeholder={characters.elon.PREAMBLE}
                     {...field}
                   />
                 </FormControl>
@@ -214,9 +247,9 @@ const CompanionForm = ({ initialData, categories }: CompanionFormProps) => {
                 <FormControl>
                   <Textarea
                     className="bg-background"
-                    rows={5}
+                    rows={6}
                     disabled={isLoading}
-                    placeholder={SEED_CHAT}
+                    placeholder={characters.elon.SEED_CHAT}
                     {...field}
                   />
                 </FormControl>

@@ -39,11 +39,13 @@ export const ImageUpload = ({ value, onChange }: ImageUploadProps) => {
         </div>
       </div>
       <UploadButton
+        appearance={{
+          button:
+            "bg-gradient-to-r from-sky-500 via-blue-500 to-cyan-500 text-white  p-4 ut-uploading:cursor-not-allowed rounded ",
+        }}
         endpoint="imageUploader"
         onClientUploadComplete={(res) => {
-          console.log("Files:-------> ", res);
           if (res && res[0]) {
-            console.log("Files:<--------- ", res);
             onChange(res[0].url);
           }
         }}
