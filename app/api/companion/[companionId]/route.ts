@@ -55,3 +55,34 @@ export async function PATCH(
     );
   }
 }
+
+export async function DELETE(
+  requsest: Request,
+  { params }: { params: { companionId: string } }
+) {
+  try {
+    const session = await getAuthSession();
+
+    if (!session) {
+      return new Response("UNauthorized", { status: 401 });
+    }
+    const user = await prisma.user.findUnique({
+      where: {
+        email: session.user.email,
+      },
+    });
+
+    await prisma.companion.delete({
+      where: {
+        userId: user?.id,
+        id: params.companionId,
+      },
+    });
+    return new Response("OK");
+  } catch (error) {
+    return new Response(
+      "Could not delete your companion at this time,please try again later",
+      { status: 500 }
+    );
+  }
+}

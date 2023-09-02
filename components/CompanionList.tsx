@@ -45,7 +45,7 @@ const CompanionList = ({ companions }: CompanionListProps) => {
               <p className="font-bold">{companion.name}</p>
               <p className="text-xs">{companion.description}</p>
             </CardHeader>
-            <CardFooter className="flex items-center justify-between text-xs text-muted-foreground">
+            <CardFooter className="flex  items-center justify-between text-xs text-muted-foreground">
               <p className="lowercase">@{companion.userName}</p>
               <div className="flex items-center">
                 <MessagesSquare className="w-3 h-3 mr-1" />

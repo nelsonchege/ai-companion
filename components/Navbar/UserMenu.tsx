@@ -21,7 +21,7 @@ export default function UserMenu() {
   return (
     <div className="relative">
       <div className="flex flex-row items-center gap-3">
-        <div className="p-3 md:py-1 md:px-2 border-[1px] border-neutral-200 dark:border-purple-700 flex flex-row items-center gap-3 rounded-full cursor-pointer hover:shadow-md transition">
+        <div className="p-3 md:py-1 md:px-2 border-[1px] border-neutral-200 dark:border-stone-700 flex flex-row items-center gap-3 rounded-full cursor-pointer hover:shadow-md transition">
           <ModeToggle />
           <div
             onClick={() => {}}
@@ -59,33 +59,26 @@ export default function UserMenu() {
                 <>
                   <MenuItems
                     onClick={() => {
-                      router.push("/trips");
+                      router.push("/");
                       setIsOpen(false);
                     }}
-                    label="My trips"
+                    label="Home"
+                  />
+                  <hr />
+                  <MenuItems
+                    onClick={() => {
+                      router.push("/companion/new");
+                      setIsOpen(false);
+                    }}
+                    label="Create a Companion"
                   />
                   <MenuItems
                     onClick={() => {
-                      router.push("/favorites");
+                      router.push("/settings");
                       setIsOpen(false);
                     }}
-                    label="My Favorites"
+                    label="Settings"
                   />
-                  <MenuItems
-                    onClick={() => {
-                      router.push("/reservations");
-                      setIsOpen(false);
-                    }}
-                    label="My Reservations"
-                  />
-                  <MenuItems
-                    onClick={() => {
-                      router.push("/properties");
-                      setIsOpen(false);
-                    }}
-                    label="My Properties"
-                  />
-                  <MenuItems onClick={() => {}} label="Airbnb my Home" />
                   <hr />
                   <MenuItems onClick={() => signOut()} label="logout" />
                 </>

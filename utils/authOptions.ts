@@ -5,6 +5,7 @@ import GoogleProvider from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 import prisma from "@/lib/db";
 import bcrypt from "bcrypt";
+import { nanoid } from "nanoid";
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -48,6 +49,47 @@ export const authOptions: NextAuthOptions = {
       },
     }),
   ],
+  callbacks: {
+    async jwt({ token, user }) {
+      const dbUser = await prisma.user.findFirst({
+        where: {
+          email: token.email,
+        },
+      });
+
+      if (!dbUser) {
+        token.id = user!.id;
+        return token;
+      }
+
+      if (!dbUser.name) {
+        await prisma.user.update({
+          where: {
+            id: dbUser.id,
+          },
+          data: {
+            name: nanoid(10),
+          },
+        });
+      }
+
+      return {
+        id: dbUser.id,
+        name: dbUser.name,
+        email: dbUser.email,
+        picture: dbUser.image,
+      };
+    },
+    async session({ token, session }) {
+      if (token) {
+        session.user.userId = token.id;
+        session.user.name = token.name;
+        session.user.email = token.email;
+        session.user.image = token.picture;
+      }
+      return session;
+    },
+  },
   pages: {
     signIn: "/login",
   },
@@ -55,6 +97,7 @@ export const authOptions: NextAuthOptions = {
   session: {
     strategy: "jwt",
   },
+
   secret: process.env.NEXTAUTH_SECRET,
 };
 

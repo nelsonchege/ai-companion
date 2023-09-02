@@ -74,8 +74,10 @@ const CompanionForm = ({ initialData, categories }: CompanionFormProps) => {
               toast.error("Companion Updated unSuccessfull");
             }
             if (error.response?.status === 401) {
+              toast.error("Companion Updated unSuccessfull");
               router.push("/");
             }
+            toast.error("Companion Updated unSuccessfull");
           }
         });
     } else {

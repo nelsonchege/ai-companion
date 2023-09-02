@@ -36,7 +36,7 @@ export async function POST(requsest: Request) {
       data: {
         categoryId,
         userId: user.id,
-        userName: user.email,
+        userName: user?.name,
         src,
         name,
         description,
