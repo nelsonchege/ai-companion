@@ -77,7 +77,7 @@ model Companion{
 
 enum Role{
   user
-  syster
+  system
 }
 
 
