@@ -13,20 +13,22 @@ export async function POST(
   { params }: { params: { chatId: string } }
 ) {
   try {
+    // check if user exist,if not throw an error
     const session = await getAuthSession();
 
     if (!session) {
       return new Response("UNauthorized", { status: 401 });
     }
 
+    //get users details
     let sessionMail = session.user.email;
-
     const user = await prisma.user.findUnique({
       where: {
         email: sessionMail,
       },
     });
 
+    //get users prompt and check if passes the rate limiter
     const { prompt } = await request.json();
     const identifier = request.url + "-" + user?.id;
     const { success } = await rateLimit(identifier);
@@ -35,6 +37,7 @@ export async function POST(
       return new Response("Rate limit exceeded", { status: 429 });
     }
 
+    //add in users prompts into the database
     const companion = await prisma.companion.update({
       where: {
         id: params.chatId,
@@ -62,36 +65,39 @@ export async function POST(
       userId: user.id,
       modelName: "llama2-13b",
     };
+
+    // initialize memorry storage
     const memoryManager = await MemoryManager.getInstance();
-    console.log("reached here --------------------------", { memoryManager });
+
+    // check if there is previous conversations
     const records = await memoryManager.readLatestHistory(companionKey);
-    console.log("reached here -------------------------- 4", { records });
+
+    //if no chat add new chat from the companion seed
     if (records.length === 0) {
       await memoryManager.seedChatHistory(companion.seed, "\n\n", companionKey);
     }
 
-    await memoryManager.writeToHistory("User: " + prompt + "\n", companionKey);
+    // add the new user input to the chat
+    await memoryManager.writeToHistory("Human: " + prompt + "\n", companionKey);
 
     const recentChatHistory = await memoryManager.readLatestHistory(
       companionKey
     );
 
-    console.log("reached here -------------------------- 5", {
-      recentChatHistory,
-    });
-    const similarDocs = await memoryManager.vectorSearch(
-      recentChatHistory,
-      companion_file_name
-    );
+    // const similarDocs = await memoryManager.vectorSearch(
+    //   recentChatHistory,
+    //   companion_file_name
+    // );
 
-    let relevantHistory = "";
+    // let relevantHistory = "";
 
-    if (!!similarDocs && similarDocs.length !== 0) {
-      relevantHistory = similarDocs.map((doc) => doc.pageContent).join("\n");
-    }
+    // console.log("relevantHistory 1 ------------->", relevantHistory);
+    // if (!!similarDocs && similarDocs.length !== 0) {
+    //   relevantHistory = similarDocs.map((doc) => doc.pageContent).join("\n");
+    // }
 
     const { handlers } = LangChainStream();
-
+    console.log("replicate env --------->", process.env.REPLICATE_API_TOKEN);
     const model = new Replicate({
       model:
         "meta/llama-2-13b-chat:de18b8b68ef78f4f52c87eb7e3a0244d18b45b3c67affef2d5055ddc9c2fb678",
@@ -102,7 +108,8 @@ export async function POST(
       callbackManager: CallbackManager.fromHandlers(handlers),
     });
     model.verbose = true;
-
+    console.log("Here -------------------->", model);
+    //sending prompt to the model
     const resp = String(
       await model
         .call(
@@ -111,12 +118,13 @@ export async function POST(
         ${companion.instructions}
 
         Below are the relevant details about ${name}'s past and thr conversation you are in
-        ${relevantHistory}
 
         ${recentChatHistory}\n${companion.name}
         `
         )
-        .catch(console.error)
+        .catch((err) =>
+          console.log("error getting ai response ---------->", err)
+        )
     );
 
     const cleaned = resp.replaceAll(",", "");
@@ -131,7 +139,7 @@ export async function POST(
     s.push(null);
 
     if (response !== undefined && response.length > 1) {
-      memoryManager.writeToHistory("" + response.trim(), CompanionKey);
+      memoryManager.writeToHistory("" + response.trim(), companionKey);
 
       await prisma.companion.update({
         where: {
@@ -151,7 +159,6 @@ export async function POST(
 
     return new StreamingTextResponse(s);
   } catch (error) {
-    console.log("chat Error", error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }

@@ -20,36 +20,12 @@ export class MemoryManager {
   }
 
   public async init() {
-    console.log("here---------->");
     if (this.vectorDBClient instanceof PineconeClient) {
       await this.vectorDBClient.init({
         apiKey: process.env.PINECONE_API_KEY!,
         environment: process.env.PINECONE_ENVIRONMENT!,
       });
     }
-  }
-
-  public async vectorSearch(
-    recentChatHistory: string,
-    companionFileName: string
-  ) {
-    const pineconeClient = <PineconeClient>this.vectorDBClient;
-
-    const pineconeIndex = pineconeClient.Index(
-      process.env.PINECONE_INDEX! || ""
-    );
-
-    const vectorStore = await PineconeStore.fromExistingIndex(
-      new OpenAIEmbeddings({ openAIApiKey: process.env.OPENAI_API_KEY }),
-      { pineconeIndex }
-    );
-
-    const similarDocs = await vectorStore
-      .similaritySearch(recentChatHistory, 3, { fileName: companionFileName })
-      .catch((err) => {
-        console.log("WARNING: failed to get vector search results.", err);
-      });
-    return similarDocs;
   }
 
   public static async getInstance(): Promise<MemoryManager> {
@@ -61,13 +37,35 @@ export class MemoryManager {
     return MemoryManager.instance;
   }
 
+  public async vectorSearch(
+    recentChatHistory: string,
+    companionFileName: string
+  ) {
+    const pineconeClient = <PineconeClient>this.vectorDBClient;
+
+    const pineconeIndex = pineconeClient.Index(
+      process.env.PINECONE_INDEX! || ""
+    );
+    console.log("Pinecone Index ---------->", pineconeIndex);
+    const vectorStore = await PineconeStore.fromExistingIndex(
+      new OpenAIEmbeddings({ openAIApiKey: process.env.OPENAI_API_KEY }),
+      { pineconeIndex }
+    );
+    console.log("vector Store ---------->", vectorStore);
+    const similarDocs = await vectorStore
+      .similaritySearch(recentChatHistory, 3, { fileName: companionFileName })
+      .catch((err) => {});
+
+    console.log("similarDocs ---------->", similarDocs);
+    return similarDocs;
+  }
+
   private generateRedisCompanionKey(companionKey: CompanionKey): string {
     return `${companionKey.companionName}-${companionKey.modelName}-${companionKey.userId}`;
   }
 
   public async writeToHistory(text: string, companionKey: CompanionKey) {
     if (!companionKey || typeof companionKey.userId == "undefined") {
-      console.log("Companion key set incorrectly");
       return "";
     }
 
@@ -82,7 +80,6 @@ export class MemoryManager {
 
   public async readLatestHistory(companionKey: CompanionKey): Promise<string> {
     if (!companionKey || typeof companionKey.userId == "undefined") {
-      console.log("Companion key set incorrectly");
       return "";
     }
 
@@ -103,7 +100,6 @@ export class MemoryManager {
   ) {
     const key = this.generateRedisCompanionKey(companionKey);
     if (await this.history.exists(key)) {
-      console.log("User already has chat history");
       return;
     }
 

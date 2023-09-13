@@ -61,11 +61,9 @@ export const LoginForm = () => {
 
       setLoading(false);
 
-      console.log(res);
       if (!res?.error) {
         router.push(callbackUrl);
       } else {
-        console.log("invalid username or password");
         setError("invalid username or password");
       }
     } catch (error: any) {
